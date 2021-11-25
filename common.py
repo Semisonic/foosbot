@@ -1,3 +1,4 @@
+import typing as t
 from enum import Enum
 
 class GameFormat(str, Enum):
