@@ -72,7 +72,7 @@ def _execute_out_command(cmd: c.OutCommand, ctx: RequestContext) -> t.List[Execu
 
     if not player_ids:
         artifacts.append(
-            SendMessageArtifact(ctx.caller_id, "Your request has been accepted, please wait until someone matches it")
+            SendMessageArtifact(ctx.caller_id, "See ya around soon!")
         )
     else:
         for player_id in player_ids:
@@ -84,4 +84,11 @@ def _execute_out_command(cmd: c.OutCommand, ctx: RequestContext) -> t.List[Execu
             
 
 def execute_command(cmd: c.Command, ctx: RequestContext) -> t.List[ExecutionArtifact]:
-    pass
+    if isinstance(cmd, c.WannaPlayCommand):
+        return _execute_wp_command(c, ctx)
+    elif isinstance(cmd, c.GoodGameCommand):
+        return _execute_gg_command(cmd, ctx)
+    elif isinstance(cmd, c.OutCommand):
+        return _execute_out_command(cmd, ctx)
+    
+    raise Exception("Unsupported command type")
