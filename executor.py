@@ -25,8 +25,25 @@ def _execute_wp_command(cmd: c.WannaPlayCommand, ctx: RequestContext) -> t.List[
     else:
         for player_id in player_ids:
             artifacts.append(
-                SendMessageArtifact(player_id, "Get ready, ")
+                SendMessageArtifact(player_id, "Get ready, your match is coming! 🔥")
             )
+
+    return artifacts
+
+def _build_gg_message(cmd: c.GoodGameCommand, match_id: int, user_id: str) -> str:
+    message = f"Good game! Game ${match_id}: ";
+    message += cmd.
+
+def _execute_gg_command(cmd: c.GoodGameCommand, ctx: RequestContext) -> t.List[ExecutionArtifact]:
+    match_id = db.execute_gg_command(cmd)
+    artifacts: t.List[ExecutionArtifact] = []
+
+    for user_id in ctx.user_ids:
+        if user_id == ctx.caller_id:
+            continue
+        artifacts.append(
+            SendMessageArtifact(user_id, "Good game! ")
+        )
             
 
 def execute_command(cmd: c.Command, ctx: RequestContext) -> t.List[ExecutionArtifact]:
