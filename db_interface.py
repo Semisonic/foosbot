@@ -20,7 +20,8 @@ def execute_gg_command(cmd) -> int:
 
     db.GG(db.db_conn, (cmd.side_1, cmd.side_2, cmd.score_1, cmd.score_2, None, cmd.match_id))
     
-def execute_out_command(command: c.OutCommand) -> t.Set[str]:
+def execute_out_command(command) -> t.Set[str]:
     """
     Out the current player and do re-matching
     """
+    db.out(db.db_conn, command.user_id)
