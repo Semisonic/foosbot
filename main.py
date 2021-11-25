@@ -119,9 +119,12 @@ def event_message(payload):
     user_id = payload["event"]["user"]
 
     ctx = RequestContext(user_id, get_message_refered_users(payload["event"]))
+    received_message = payload["event"]["text"]
+    print(received_message, ctx.user_ids, ctx.caller_id, sep="\n")
     try:
-        cmd = parse_query(payload["event"]["text"], ctx)
+        cmd = parse_query(received_message, ctx)
         for artifact in executor.execute_command(cmd):
+            print(artifact)
             if isinstance(artifact, executor.SendMessageArtifact):
                 send_message(
                     channel=artifact.user_id,  # payload["event"]["channel"],
@@ -131,6 +134,11 @@ def event_message(payload):
 
     except Exception as e:
         response_msg = f"Could not parse your query: {e}"
+        send_message(
+                    channel=ctx.caller_id,  # payload["event"]["channel"],
+                    text=response_msg,
+                    token=get_user_tokens()[user_id],
+                )
 
 
     return {}

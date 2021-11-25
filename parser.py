@@ -21,6 +21,7 @@ def process_user_ids(tokens: t.List[str], ctx: RequestContext) -> t.List[str]:
         
         tokens[i] = user_id
 
+    print("here are the beautiful tokens", tokens)
     return tokens
 
 
