@@ -20,9 +20,10 @@ def create_league(conn, league):
     :return:
     """
     cur = conn.cursor()
-    cur.execute(f"insert into league (name) values ('{ league }')")
+    cur.execute(f"insert into league (name) values (?)", league)
     conn.commit()
     return cur.lastrowid
+
 def create_player(conn, player):
     """
     Create a new player into the player table
@@ -31,9 +32,10 @@ def create_player(conn, player):
     :return:
     """
     cur = conn.cursor()
-    cur.execute(f"insert into player (name) values ('{ player }')")
+    cur.execute(f"insert into player (name) values (?)", player)
     conn.commit()
     return cur.lastrowid
+
 def create_waitlist(conn, waitlist):
     """
     Create a new match request into the waitlist table
@@ -47,6 +49,7 @@ def create_waitlist(conn, waitlist):
     cur.execute(sql, waitlist)
     conn.commit()
     return cur.lastrowid
+
 def create_match(conn, match):
     """
     Create a new match into the match table
@@ -61,6 +64,7 @@ def create_match(conn, match):
     conn.commit()
     # Code to send out slack messages here
     return cur.lastrowid
+
 def player_name_to_id(conn, player_name):
     """
     Helper function that converts a player to their player_id
@@ -68,11 +72,11 @@ def player_name_to_id(conn, player_name):
     : return player_id
     """
     cur = conn.cursor()
-    player_id = cur.execute(f"SELECT player_id FROM player where name = '{player_name}'")
+    player_id = cur.execute(f"SELECT player_id FROM player where name = ?", player_name)
     rows = cur.fetchall()
     if len(rows) ==0:
         create_player(conn, player_name)
-    player_id = cur.execute(f"SELECT player_id FROM player where name = '{player_name}'")
+    player_id = cur.execute(f"SELECT player_id FROM player where name = ?", player_name)
     rows = cur.fetchall()
     player_id = rows[0][0]
     return player_id
@@ -83,7 +87,7 @@ def player_id_to_name(conn, player_id):
     : return player_name
     """
     cur = conn.cursor()
-    player_id = cur.execute(f"SELECT name FROM player where player_id = {player_id}")
+    player_id = cur.execute(f"SELECT name FROM player where player_id = ?", player_id)
     rows = cur.fetchall()
     name = rows[0][0]
     return name
@@ -94,11 +98,11 @@ def league_name_to_id(conn, league_name):
     : return league_id
     """
     cur = conn.cursor()
-    league_id = cur.execute(f"SELECT league_id FROM league where name = '{league_name}'")
+    league_id = cur.execute(f"SELECT league_id FROM league where name = ?", league_name)
     rows = cur.fetchall()
     if len(rows) ==0:
         create_league(conn, league_name)
-    league_id = cur.execute(f"SELECT league_id FROM league where name = '{league_name}'")
+    league_id = cur.execute(f"SELECT league_id FROM league where name = ?", league_name)
     rows = cur.fetchall()
     league_id = rows[0][0]
     return league_id
@@ -107,9 +111,9 @@ def out(conn, player_name):
     Delete from waitlist
     """
     player_id = player_name_to_id(conn, player_name)
-    sql = f"DELETE FROM wait_list WHERE player_id='{ player_id }'"
+    sql = "DELETE FROM wait_list WHERE player_id=?"
     cur = conn.cursor()
-    cur.execute(sql)
+    cur.execute(sql, player_id)
     conn.commit()
 
     return set_match(conn)
@@ -189,6 +193,7 @@ def WP(conn, match_request):
     player_id = player_name_to_id(conn, name)
     create_waitlist(conn, (player_id, match_request[1]))
     return set_match(conn)
+
 def update_match(conn, match):
     """
     Alter the match score
@@ -205,15 +210,31 @@ def update_match(conn, match):
 def GG(conn, result):
     """
     Create a record in the match table with the completed game result
-    : param result: [winner_1, winner_2, loser_1, loser_2, winner_score, loser_score,league_name, match_id]
+    : param result: [side_1, side_2, side_1_score, side_2_score,league_name]
     : return: "Succesfully recorded score of:"
     """
-    if result[4] != None:
-        league_id = league_name_to_id(result[4])
+    winners, losers = [None, None], [None, None]
+
+    if result[2] > result[3]:
+        winner_score, loser_score = result[2], result[3]
+        win, lose = result[0], result[1]
+        for index, player in enumerate(win):
+            winners[index] = player_name_to_id(conn, player)
+        for index, player in enumerate(lose):
+            losers[index] = player_name_to_id(conn, player)
     else:
-        league_id = None
+        loser_score, winner_score = result[2], result[3]
+        lose, win = result[0], result[1]
+        for index, player in enumerate(win):
+            winners[index] = player_name_to_id(conn, player)
+        for index, player in enumerate(lose):
+            losers[index] = player_name_to_id(conn, player)
+
+    match_id = result[7] if len(result) >=8 else None
     if match_id:
-        update_match(conn, (result[0], result[1], result[2], result[3], result[4], result[5], league_id, match_id))
+        update_match(conn, (winners[0], winners[1], losers[0], losers[1], winner_score, loser_score, None))
     else:
         create_match(conn, (result[0], result[1], result[2], result[3], result[4], result[5], league_id))
     return set_match(conn)
+
+db_conn = create_connection("db.sqlite")

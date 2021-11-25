@@ -1,15 +1,21 @@
 import typing as t
-import commands as c
+
+import db
 
 def is_match_id_valid(match_id: int) -> bool:
     return True
 
-def execute_wp_command(command: c.WannaPlayCommand) -> t.Set[str]:
+def execute_wp_command(cmd) -> t.Set[str]:
     """
     Return the list of ids for users who'll be playing.
     """
 
-def execute_gg_command(command: c.GoodGameCommand) -> int:
+    db.WP(db.db_conn, (cmd.owner, cmd.game_format))
+
+def execute_gg_command(cmd) -> int:
     """
     Return the game id.
     """
+
+    db.GG(db.db_conn, (cmd.side_1, cmd.side_2, cmd.score_1, cmd.score_2, None, cmd.match_id))
+    

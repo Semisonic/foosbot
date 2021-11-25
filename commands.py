@@ -77,7 +77,7 @@ class GoodGameCommand(Command):
         self.player_out = player_out
 
     @classmethod
-    def _extract_side_and_score(cls, tokens: t.Iterable[str], ctx: RequestContext) -> t.Tuple(t.List[str], int):
+    def _extract_side_and_score(cls, tokens: t.Iterable[str], ctx: RequestContext) -> t.Tuple[t.List[str], int]:
         side = []
         side_score = 0
 

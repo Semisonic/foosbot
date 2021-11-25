@@ -1,5 +1,5 @@
-from .parser import parse_query
-from .common import RequestContext
+from parser import parse_query
+from common import RequestContext
 import db
 from flask import Flask
 
@@ -107,6 +107,7 @@ EVENTS_ROUTE_HANDLERS = {
     "event_callback": events_route_event_callback,
 }
 
+import executor
 
 def event_message(payload):
     logger.info("User says: %s", payload["event"]["text"], "\x1b[0m")
@@ -120,14 +121,17 @@ def event_message(payload):
     ctx = RequestContext(user_id, get_message_refered_users(payload["event"]))
     try:
         cmd = parse_query(payload["event"]["text"], ctx)
+        for artifact in executor.execute_command(cmd):
+            if isinstance(artifact, executor.SendMessageArtifact):
+                send_message(
+                    channel=artifact.user_id,  # payload["event"]["channel"],
+                    text=artifact.message,
+                    token=get_user_tokens()[user_id],
+                )
+
     except Exception as e:
         response_msg = f"Could not parse your query: {e}"
 
-    send_message(
-        channel=payload["event"]["user"],  # payload["event"]["channel"],
-        text=response_msg,
-        token=get_user_tokens()[user_id],
-    )
 
     return {}
 
@@ -167,4 +171,3 @@ def send_message(channel, text, token):
 logger.setLevel(logging.INFO)
 
 
-db_conn = db.create_connection("db.sqlite")
