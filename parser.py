@@ -9,11 +9,12 @@ def process_user_ids(tokens: t.List[str], ctx: RequestContext) -> t.List[str]:
 
         if t[0] != "<":
             tokens[i] = t.lower()
+            continue
 
         if t[-1] != ">":
             raise ParseException("Please don't use '<' and '>' in your queries")
         
-        user_id = t[1:-1]
+        user_id = t[2:-1]
 
         if user_id not in ctx.user_ids:
             raise ParseException(f"Invalid user id: {user_id}")
