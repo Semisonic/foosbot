@@ -63,18 +63,15 @@ class GoodGameCommand(Command):
     def __init__(
         self,
         match_id: t.Optional[int],
-        winner_1: str, winner_2: t.Optional[str],
-        loser_1: str, loser_2: t.Optional[str],
+        side_1: t.List[str], side_2: t.List[str],
         score_1: int, score_2: int,
         player_out: t.Optional[str]
     ) -> None:
         super().__init__()
 
         self.match_id = match_id
-        self.winner_1 = winner_1
-        self.winner_2 = winner_2
-        self.loser_1 = loser_1
-        self.loser_2 = loser_2
+        self.side_1 = side_1
+        self.side_2 = side_2
         self.score_1 = score_1
         self.score_2 = score_2
         self.player_out = player_out
@@ -148,8 +145,8 @@ class GoodGameCommand(Command):
         
         return GoodGameCommand(
             match_id,
-            side_1[0], side_1[1] if len(side_1) == 2 else None,
-            side_2[0], side_2[1] if len(side_2) == 2 else None,
+            side_1,
+            side_2,
             side_1_score, side_2_score,
             player_out
         )
