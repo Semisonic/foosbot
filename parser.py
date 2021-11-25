@@ -30,9 +30,7 @@ class WannaPlayCommand(Command):
         coplayers = []
         
         for i in range(len(tokens)):
-            if tokens[i][0] != "@":
-                tokens[i] = tokens[i].lower()
-            else:
+            if tokens[i][0] == "@":
                 coplayers.append(tokens[i])
         
         assert tokens[0].lower() == "wp" or tokens[0].lower() == "wannaplay"
@@ -119,10 +117,6 @@ class GoodGameCommand(Command):
     
     @classmethod
     def generate(cls, tokens: t.List[str], ctx: RequestContext) -> "GoodGameCommand":
-        for i in range(len(tokens)):
-            if tokens[i][0] != "@":
-                tokens[i] = tokens[i].lower()
-        
         assert tokens[0].lower() == "gg" or tokens[0].lower() == "goodgame"
 
         token_map = build_token_map(tokens)
@@ -146,7 +140,33 @@ class GoodGameCommand(Command):
             player_out
         )
         
+def process_user_ids(tokens: t.List[str], ctx: RequestContext) -> t.List[str]:
+    for i in range(len(tokens)):
+        t = tokens[i]
 
-def parse_query(query: str) -> Command:
-    tokens = query.split()
+        if t[0] != "<":
+            tokens[i] = t.lower()
+
+        if t[-1] != ">":
+            raise ParseException("Please don't use '<' and '>' in your queries")
+        
+        user_id = t[1:-1]
+
+        if user_id not in ctx.user_ids:
+            raise ParseException(f"Invalid user id: {user_id}")
+        
+        tokens[i] = user_id
+
+    return tokens
+
+
+def parse_query(query: str, ctx: RequestContext) -> Command:
+    tokens = process_user_ids(query.split(), ctx)
+
+    if tokens[0] == "wp":
+        return WannaPlayCommand.generate(tokens, ctx)
+    elif tokens[0] == "gg":
+        return GoodGameCommand.generate(tokens, ctx)
+    else:
+        raise ParseException(f"Unrecornised command type: {tokens[0]}")
 
