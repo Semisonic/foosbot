@@ -13,3 +13,8 @@ def execute_gg_command(command: c.GoodGameCommand) -> int:
     """
     Return the game id.
     """
+
+def execute_out_command(command: c.OutCommand) -> t.Set[str]:
+    """
+    Out the current player and do re-matching
+    """
