@@ -1,5 +1,6 @@
 import typing as t
 from common import ScoreSystem, GameFormat, ParseException, RequestContext
+from db_interface import is_match_id_valid
 
 def build_token_map(tokens: t.List[str]) -> t.MutableMapping[str, int]:
     return {tokens[i]: i for i in range(len(tokens))}
@@ -61,6 +62,7 @@ class WannaPlayCommand(Command):
 class GoodGameCommand(Command):
     def __init__(
         self,
+        match_id: t.Optional[int],
         winner_1: str, winner_2: t.Optional[str],
         loser_1: str, loser_2: t.Optional[str],
         score_1: int, score_2: int,
@@ -68,6 +70,7 @@ class GoodGameCommand(Command):
     ) -> None:
         super().__init__()
 
+        self.match_id = match_id
         self.winner_1 = winner_1
         self.winner_2 = winner_2
         self.loser_1 = loser_1
@@ -119,8 +122,24 @@ class GoodGameCommand(Command):
 
         vs_index = token_map["vs"]
 
-        side_1, side_1_score = cls._extract_side_and_score(tokens[1:vs_index], ctx)
+        match_id: t.Optional[int] = None
+
+        if tokens[1][0] == "$":
+            try:
+                match_id = int(t[1:])
+
+                if not is_match_id_valid(match_id):
+                    raise ParseException(f"Invalid game id: {match_id}")
+            except ParseException as e:
+                raise e
+            except:
+                raise ParseException(f"Invalid game id format: {tokens[1]}")
+
+        side_1, side_1_score = cls._extract_side_and_score(tokens[1 if match_id is None else 2:vs_index], ctx)
         side_2, side_2_score = cls._extract_side_and_score(tokens[vs_index+1:], ctx)
+
+        if len(side_1) != len(side_2):
+            raise ParseException("Numbers of players on each side don't match")
 
         player_out: t.Optional[str] = None
         
@@ -128,6 +147,7 @@ class GoodGameCommand(Command):
             player_out = ctx.caller_id
         
         return GoodGameCommand(
+            match_id,
             side_1[0], side_1[1] if len(side_1) == 2 else None,
             side_2[0], side_2[1] if len(side_2) == 2 else None,
             side_1_score, side_2_score,
