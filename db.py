@@ -111,6 +111,9 @@ def out(conn, player_name):
     cur = conn.cursor()
     cur.execute(sql)
     conn.commit()
+
+    return set_match(conn)
+
 def set_match(conn):
     """
     Return players where format and score_line matches my request, or is null (they don't mind) based on earliest person's preference
