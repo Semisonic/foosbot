@@ -85,7 +85,7 @@ def _execute_out_command(cmd: c.OutCommand, ctx: RequestContext) -> t.List[Execu
 
 def execute_command(cmd: c.Command, ctx: RequestContext) -> t.List[ExecutionArtifact]:
     if isinstance(cmd, c.WannaPlayCommand):
-        return _execute_wp_command(c, ctx)
+        return _execute_wp_command(cmd, ctx)
     elif isinstance(cmd, c.GoodGameCommand):
         return _execute_gg_command(cmd, ctx)
     elif isinstance(cmd, c.OutCommand):
