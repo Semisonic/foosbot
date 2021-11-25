@@ -230,7 +230,7 @@ def GG(conn, result):
         for index, player in enumerate(lose):
             losers[index] = player_name_to_id(conn, player)
 
-    match_id = result[7] if len(result) >=8 else None
+    match_id = result[5] if len(result) >=6 else None
     if match_id:
         update_match(conn, (winners[0], winners[1], losers[0], losers[1], winner_score, loser_score, None))
     else:
